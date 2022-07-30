@@ -32,6 +32,11 @@ router.get('/CloseOrder',(req,res)=>{
        }
   })
 
+
+router.get('/DeleteQueue',(req,res)=>{
+      db.tocloseorders.remove({"Common":2023});
+})
+
 //MT4-EA- Client Routes - POST Methods
 router.post('/OpenOrder',JsonHandler,(req,res)=>{
       var idArray = JSON.parse(req.body);
@@ -54,17 +59,14 @@ router.post('/OpenOrder',JsonHandler,(req,res)=>{
 router.post('/CloseOrder',JsonHandler,(req,res)=>{ //JsonHandler
       var idArray = JSON.parse(req.body);
       console.log(req.body);
-      if(idArray[0]["Orders"]=='None'){
+      if(idArray[0]["Orders"]=="None"){
             //Clear All Records If Nothing Is To Be Closed
-            db.tocloseorders.remove();
+            db.tocloseorders.remove({"Common":2023});
       }
       else if(idArray[0]["ticket"]){
-      //Remove All Records From TO Close
-      db.tocloseorders.remove();
-      for(let i=0;i<idArray.length;i++){
-            //Adding Not Deleted Orders Back To ToCloseOrders Queue
-            db.tocloseorders.save(idArray[i]);
-         }
+      //If We Get Records.. So Delete all Old Records and update it New in Close Order Queue
+      db.tocloseorders.remove({"Common":2023});
+      db.tocloseorders.save(idArray);
       }
       res.send("Ok");
 })

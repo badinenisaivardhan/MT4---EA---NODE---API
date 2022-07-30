@@ -12,15 +12,22 @@ router.get('/',(req,res)=>{
 })
 
 router.get('/OpenOrder',(req,res)=>{
-    const Order = { Symbol:"BTCUSD",OderType:"OP_BUY",Lot:"0.02" };
+    var Order = { Symbol:"BTCUSD",OderType:"OP_BUY",Lot:"0.02" };
     db.toopenorders.save(Order);
     res.send(`Order Opened: Symbol:${Order.Symbol},OderType:${Order.OderType},Lot:${Order.Lot}`)
 })
 
 router.get('/CloseOrder',(req,res)=>{
     var orders = db.openorders.find();
-    db.tocloseorders.save(orders);
-    res.send(orders);
+    if(orders.length){
+        var copiedorders = db.tocloseorders.save(orders);
+        db.openorders.remove({"Common":2023});
+        res.send(copiedorders);
+    }
+    else{
+        res.status(200).json([{Orders:"None"}]);
+    }
+
 })
 
 //POST-ENDPOINTS
