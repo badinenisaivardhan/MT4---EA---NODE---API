@@ -1,0 +1,23 @@
+{
+  "name": "mt4-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "data/*"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "diskdb": "^0.1.17",
+    "express": "^4.18.1",
+    "nodemon": "^2.0.19"
+  }
+}
