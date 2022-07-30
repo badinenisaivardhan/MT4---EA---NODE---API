@@ -62,6 +62,7 @@ router.post('/CloseOrder',JsonHandler,(req,res)=>{ //JsonHandler
       if(idArray[0]["Orders"]=="None"){
             //Clear All Records If Nothing Is To Be Closed
             db.tocloseorders.remove({"Common":2023});
+            res.send("Ok");
       }
       else if(idArray[0]["ticket"]){
       //If We Get Records.. So Delete all Old Records and update it New in Close Order Queue
