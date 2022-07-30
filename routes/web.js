@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('diskdb');
+const { route } = require('./client-ea4');
 db.connect('./data', ['toopenorders']);
 db.connect('./data', ['openorders']);
+db.connect('./data', ['tocloseorders']);
 
 //GET-ENDPOINTS
 router.get('/',(req,res)=>{
@@ -15,15 +17,12 @@ router.get('/OpenOrder',(req,res)=>{
     res.send(`Order Opened: Symbol:${Order.Symbol},OderType:${Order.OderType},Lot:${Order.Lot}`)
 })
 
-router.post('/CloseOrder',(req,res)=>{
-    var orders = req.body;
-    for(let i=0;i<orders.length;i++){
-        var tocloseorder = db.openorders.find({ticket:orders[i]["ticket"]})
-        console.log(tocloseorder);
-        
-    }
-    res.send("Ok")
+router.get('/CloseOrder',(req,res)=>{
+    var orders = db.openorders.find();
+    db.tocloseorders.save(orders);
+    res.send(orders);
 })
+
 //POST-ENDPOINTS
 
 
