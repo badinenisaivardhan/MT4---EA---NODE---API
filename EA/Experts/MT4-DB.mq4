@@ -16,7 +16,7 @@
 input string Developer = "Sai Vardhan Badineni";
 input string GitHub = "github.com/badinenisaivardhan";
 input string NodeServer = "http://localhost";    // Server hostname or IP address
-
+input int Common = 2023;
 
 int OnInit()
   {
@@ -32,6 +32,7 @@ int OnInit()
      }
    else{
       OpenOrderHandler();
+      CloseOrderHandler();
       return(INIT_SUCCEEDED);
      }
  
@@ -49,7 +50,9 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
-void OnTick(){OpenOrderHandler();}
+void OnTick(){OpenOrderHandler();
+CloseOrderHandler();
+}
 //+------------------------------------------------------------------+
 
 //HandlerFunctions
@@ -69,21 +72,63 @@ void OpenOrderHandler(){
       CJAVal postjson;
       //Print(json.Size());
       for(int i=0;i<json.Size();i++){  
-      int ticket=OrderSend(json[i]["Symbol"].ToStr(),json[i]["OderType"].ToStr(),json[i]["Lot"].ToDbl(),Ask,3,0,0,"SIMPLE BUY ORDER",123456,0,clrGreen);
+      double askvalue = Ask;
+      int ticket=OrderSend(json[i]["Symbol"].ToStr(),json[i]["OderType"].ToStr(),json[i]["Lot"].ToDbl(),askvalue,3,0,0,"SIMPLE BUY ORDER",123456,0,clrGreen);
       if(ticket<=0){
          Print("Failed To Place Orders",GetLastError());
       }
       if(ticket>1){
-         postjson[i]["id"]=json[i]["_id"].ToStr();
          postjson[i]["ticket"]=ticket;
+         postjson[i]["id"]=json[i]["_id"].ToStr();
+         postjson[i]["Symbol"]=json[i]["Symbol"];
+         postjson[i]["OrderType"]=json[i]["OrderType"];
+         postjson[i]["Lot"]=json[i]["Lot"];
+         postjson[i]["Common"]=Common;
       }
-      ticket = NULL;
-      }
-      Requests postopenrequest;
-      Response postopenresponse = requests.post(checkOpenUrl,postjson.Serialize());
-      postjson.Clear();
+     }
+     Requests postopenrequest;
+     Response postopenresponse = requests.post(checkOpenUrl,postjson.Serialize());
+     postjson.Clear();
    }   
 }
 
 
- 
+ void CloseOrderHandler(){
+   CJAVal json1 ;
+   string checkCloseUrl = NodeServer + "/Client/CloseOrder";
+   Requests requests1;
+   Response response1 = requests1.get(checkCloseUrl);
+   string responseString1 = response1.text;
+   json1.Deserialize(responseString1);
+   if(StringLen(json1[0]["Orders"].ToStr())>0){
+      //Print(StringLen(json[0]["Orders"].ToStr())>0);
+      //Print("CloseHandler: No Pending Close Order To Be Executed");
+   }
+   else{
+   CJAVal postjson1;
+   //Print(json.Size());
+   for(int i=0;i<json1.Size();i++){  
+      bool closeordercheck = OrderClose(json1[i]["ticket"].ToInt(),json1[i]["Lot"].ToDbl(),Ask,3,Red);
+      if(!closeordercheck){
+         postjson1[i]["ticket"]=json1[i]["ticket"];
+         postjson1[i]["id"]=json1[i]["id"].ToStr();
+         postjson1[i]["Symbol"]=json1[i]["Symbol"];
+         postjson1[i]["OrderType"]=json1[i]["OrderType"];
+         postjson1[i]["Lot"]=json1[i]["Lot"];
+         postjson1[i]["Common"]=Common;
+         
+      }
+   }
+   if(StringLen(postjson1[0]["ticket"].ToStr())>1){
+      Requests postcloserequest;
+      Response postcloseresponse = postcloserequest.post(checkCloseUrl,postjson1.Serialize());
+      postjson1.Clear();  
+      }
+    else{
+      CJAVal noorder;
+      noorder["Orders"]="None";
+      Requests postcloserequest;
+      Response postcloseresponse = postcloserequest.post(checkCloseUrl,noorder.Serialize());
+    }
+   }
+ }   
