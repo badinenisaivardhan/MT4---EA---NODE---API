@@ -15,7 +15,7 @@
 
 input string Developer = "Sai Vardhan Badineni";
 input string GitHub = "github.com/badinenisaivardhan";
-input string NodeServer = "http://localhost";    // Server hostname or IP address
+input string NodeServer = "http://localhost";   
 input int Common = 2023;
 
 int OnInit()
@@ -45,12 +45,13 @@ int OnInit()
 
 void OnDeinit(const int reason)
   {
-
+   
   }
 //+------------------------------------------------------------------+
 //| Expert tick function                                             |
 //+------------------------------------------------------------------+
-void OnTick(){OpenOrderHandler();
+void OnTick(){
+OpenOrderHandler();
 CloseOrderHandler();
 }
 //+------------------------------------------------------------------+
@@ -65,12 +66,9 @@ void OpenOrderHandler(){
    string responseString = response.text;
    json.Deserialize(responseString);
    if(StringLen(json[0]["Orders"].ToStr())>0){
-      //Print(StringLen(json[0]["Orders"].ToStr())>0);
-      //Print("OpenOrderHandler: No Pending Open Order To Be Executed");
    }
    else{
       CJAVal postjson;
-      //Print(json.Size());
       for(int i=0;i<json.Size();i++){  
       double askvalue = Ask;
       int ticket=OrderSend(json[i]["Symbol"].ToStr(),json[i]["OderType"].ToStr(),json[i]["Lot"].ToDbl(),askvalue,3,0,0,"SIMPLE BUY ORDER",123456,0,clrGreen);
@@ -101,12 +99,9 @@ void OpenOrderHandler(){
    string responseString1 = response1.text;
    json1.Deserialize(responseString1);
    if(StringLen(json1[0]["Orders"].ToStr())>0){
-      //Print(StringLen(json[0]["Orders"].ToStr())>0);
-      //Print("CloseHandler: No Pending Close Order To Be Executed");
    }
    else{
    CJAVal postjson1;
-   //Print(json.Size());
    for(int i=0;i<json1.Size();i++){  
       bool closeordercheck = OrderClose(json1[i]["ticket"].ToInt(),json1[i]["Lot"].ToDbl(),Ask,3,Red);
       if(!closeordercheck){

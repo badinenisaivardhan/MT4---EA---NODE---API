@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('diskdb');
 const { route } = require('./client-ea4');
-db.connect('./data', ['toopenorders']);
-db.connect('./data', ['openorders']);
-db.connect('./data', ['tocloseorders']);
+db.connect('./data', ['PendingOrderQueue']);
+db.connect('./data', ['RunningOrderQueue']);
+db.connect('./data', ['CloseOrderQueue']);
 
 //GET-ENDPOINTS
 router.get('/',(req,res)=>{
@@ -13,15 +13,15 @@ router.get('/',(req,res)=>{
 
 router.get('/OpenOrder',(req,res)=>{
     var Order = { Symbol:"BTCUSD",OderType:"OP_BUY",Lot:"0.02" };
-    db.toopenorders.save(Order);
+    db.PendingOrderQueue.save(Order);
     res.send(`Order Opened: Symbol:${Order.Symbol},OderType:${Order.OderType},Lot:${Order.Lot}`)
 })
 
 router.get('/CloseOrder',(req,res)=>{
-    var orders = db.openorders.find();
+    var orders = db.RunningOrderQueue.find();
     if(orders.length){
-        var copiedorders = db.tocloseorders.save(orders);
-        db.openorders.remove({"Common":2023});
+        var copiedorders = db.CloseOrderQueue.save(orders);
+        db.RunningOrderQueue.remove({"Common":2023});
         res.send(copiedorders);
     }
     else{

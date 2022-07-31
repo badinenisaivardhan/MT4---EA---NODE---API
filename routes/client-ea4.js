@@ -2,19 +2,14 @@ const express = require('express');
 const router = express.Router();
 const JsonHandler = require('../Handler/JsonHandler');
 const db = require('diskdb');
-db.connect('./data', ['toopenorders']);
-db.connect('./data', ['openorders']);
-db.connect('./data', ['tocloseorders']);
+db.connect('./data', ['PendingOrderQueue']);
+db.connect('./data', ['RunningOrderQueue']);
+db.connect('./data', ['CloseOrderQueue']);
 
 //GET ENDPOINTS
-router.get('/Ping',(req,res)=>{
-    res.send("pong");
-})
-
-
 router.get('/OpenOrder',(req,res)=>{
-        if (db.toopenorders.find().length) {
-            var all = db.toopenorders.find();
+        if (db.PendingOrderQueue.find().length) {
+            var all = db.PendingOrderQueue.find();
             res.json(all);
          }else
          {
@@ -23,8 +18,8 @@ router.get('/OpenOrder',(req,res)=>{
 })
 
 router.get('/CloseOrder',(req,res)=>{
-      if (db.tocloseorders.find().length) {
-          var all = db.tocloseorders.find();
+      if (db.CloseOrderQueue.find().length) {
+          var all = db.CloseOrderQueue.find();
           res.json(all);
        }else
        {
@@ -32,42 +27,29 @@ router.get('/CloseOrder',(req,res)=>{
        }
   })
 
-
-router.get('/DeleteQueue',(req,res)=>{
-      db.tocloseorders.remove({"Common":2023});
-})
-
 //MT4-EA- Client Routes - POST Methods
 router.post('/OpenOrder',JsonHandler,(req,res)=>{
       var idArray = JSON.parse(req.body);
       if(idArray){
-      //console.log(`HitWithArrayLength :${idArray.length}`)
       for(let i=0;i<idArray.length;i++){
-            db.openorders.save(idArray[i]);
-            //Remove Order From Open Order To Avoid Re-Execution
-            db.toopenorders.remove({ _id: idArray[i]["id"] });
+            db.RunningOrderQueue.save(idArray[i]);
+            db.PendingOrderQueue.remove({ _id: idArray[i]["id"] });
        }
-      res.send("OK");
+            res.send("OK");
       }
       else{
-            //console.log("Client-EA4- PostMethod /OpenOrder");
-            //console.log(idArray);
             res.send("OK");
       }
 })
 
 router.post('/CloseOrder',JsonHandler,(req,res)=>{ //JsonHandler
       var idArray = JSON.parse(req.body);
-      console.log(req.body);
       if(idArray[0]["Orders"]=="None"){
-            //Clear All Records If Nothing Is To Be Closed
-            db.tocloseorders.remove({"Common":2023});
-            res.send("Ok");
+            db.CloseOrderQueue.remove({"Common":2023});
       }
-      else if(idArray[0]["ticket"]){
-      //If We Get Records.. So Delete all Old Records and update it New in Close Order Queue
-      db.tocloseorders.remove({"Common":2023});
-      db.tocloseorders.save(idArray);
+      else if(idArray[0]["ticket"]>0){
+      db.CloseOrderQueue.remove({"Common":2023});
+      db.CloseOrderQueue.save(idArray);
       }
       res.send("Ok");
 })
