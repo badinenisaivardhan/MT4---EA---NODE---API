@@ -8,13 +8,15 @@ db.connect('./data', ['CloseOrderQueue']);
 
 //GET-ENDPOINTS
 router.get('/',(req,res)=>{
-    res.send("<h1>E.D.I.T.H</h1><br>");
+    res.render('index')
 })
 
-router.get('/OpenOrder',(req,res)=>{
-    var Order = { Symbol:"BTCUSD",OderType:"OP_BUY",Lot:"0.02" };
-    db.PendingOrderQueue.save(Order);
-    res.send(`Order Opened: Symbol:${Order.Symbol},OderType:${Order.OderType},Lot:${Order.Lot}`)
+router.get('/PlacedOrders',(req,res)=>{
+    if(db.PendingOrderQueue.find().length){
+    res.status(200).json([db.PendingOrderQueue.find()]);}
+    else{
+        res.status(200).json([{Orders:"None"}]); 
+    }
 })
 
 router.get('/CloseOrder',(req,res)=>{
@@ -32,6 +34,12 @@ router.get('/CloseOrder',(req,res)=>{
 
 //POST-ENDPOINTS
 
+router.post('/OpenOrder',(req,res)=>{
+    var orderdetails = req.body;
+    orderdetails["Time"] = Date.now();
+    db.PendingOrderQueue.save(orderdetails);
+    res.status(200).json([orderdetails]);
+})
 
 
 

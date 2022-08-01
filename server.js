@@ -11,7 +11,7 @@ const ApiRoutes = require('./routes/api');
 //MiddleWare
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.set('view engine', 'ejs');
 //Routes
 app.use('/',WebRoutes);
 app.use('/Client',Client_EA4_Routes);
